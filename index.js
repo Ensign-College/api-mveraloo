@@ -3,6 +3,10 @@
 // Express makes API's - connect frontend to database.
 const express = require('express');
 const cors = require('cors');
+
+const options = {
+    origin:'http://localhost:3000' //allow our frontend to call this backend
+}
 const Redis = require('redis');//import the redis library
 const bodyParser = require('body-parser'); //import the body parser
 //import express from 'express'
@@ -16,7 +20,7 @@ const port = 3001; //port number
 
 
 app.use(bodyParser.json()); //user bodyparser
-app.use(cors()); //allow frontend to call backend 
+app.use(cors(options)); //allow frontend to call backend 
 
 app.listen(port, ()=>{
     redisClient.connect(); //it connects to the database
