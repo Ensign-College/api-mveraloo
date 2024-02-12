@@ -33,6 +33,34 @@ app.post('/boxes', async (req, res) => { //async means we will await promises
         newBox.id = parseInt(await redisClient.json.arrLen('boxes', '$')) +1; //the user shouldn't choose the ID!
         await redisClient.json.arrAppend('boxes', '$',newBox); //saves the JSON in redis
         res.json(newBox); //respond with the new box
+});
+
+app.post('/customer', async (req, res) => { //async means we will await promises
+    const newBox = req.body;
+    newBox.id = parseInt(await redisClient.json.arrLen('boxes', '$')) +1; //the user shouldn't choose the ID!
+    await redisClient.json.arrAppend('boxes', '$',newBox); //saves the JSON in redis
+    res.json(newBox); //respond with the new box
+});
+
+// Endpoint POST requests to save customer data
+app.post('/customer', async (req, res) => {
+    try {
+        // Extract data from request body
+        const { firstName, lastName, phoneNumber } = req.body;
+
+        // Data
+        const key = `customer:${phoneNumber}`;
+        // Store in Redis
+        const data = JSON.stringify({ firstName, lastName, phoneNumber });
+        
+        // Store data in Redis
+        await redisClient.set(key, data);
+        res.json({ firstName, lastName, phoneNumber });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('An Error Occurred');
+        return;
+    }
 
 });
 
