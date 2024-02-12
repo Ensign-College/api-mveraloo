@@ -43,19 +43,22 @@ app.post('/customer', async (req, res) => { //async means we will await promises
 });
 
 // Endpoint POST requests to save customer data
-app.post('/customer', async (req, res) => {
+app.post('/customers', async (req, res) => {
     try {
         // Extract data from request body
         const { firstName, lastName, phoneNumber } = req.body;
 
-        // Data
+        // Data id
         const key = `customer:${phoneNumber}`;
         // Store in Redis
-        const data = JSON.stringify({ firstName, lastName, phoneNumber });
-        
+        const user = {
+            firstName,
+            lastName,
+            phoneNumber
+        }
         // Store data in Redis
-        await redisClient.set(key, data);
-        res.json({ firstName, lastName, phoneNumber });
+        await redisClient.json.set(key,'$', user);
+        res.json(user);
     } catch (error) {
         console.error(error);
         res.status(500).send('An Error Occurred');
@@ -63,6 +66,7 @@ app.post('/customer', async (req, res) => {
     }
 
 });
+
 
 //1 parameter = URL
 //2 - a function to return boxes
