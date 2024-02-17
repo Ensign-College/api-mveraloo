@@ -42,12 +42,24 @@ app.post('/customer', async (req, res) => { //async means we will await promises
     res.json(newBox); //respond with the new box
 });
 
+//1 parameter = URL
+//2 - a function to return boxes
+//req= the request from the user/browser
+//res= the response to the browser
+//async before the arrow so i can make promises
+app.get('/boxes', async (req,res)=>{
+    let boxes = await redisClient.json.get('boxes',{path: '$'}); //get the boxes 
+    
+    //send the boxes to the browser
+    res.json(boxes[0]); // the boxes is an array of arrays, convert first element to a JSON string
+}); //return boxes to the user
+
+//Assignments 
 // Endpoint POST requests to save customer data
 app.post('/customers', async (req, res) => {
     try {
         // Extract data from request body
         const { firstName, lastName, phoneNumber } = req.body;
-
         // Data id
         const key = `customer:${phoneNumber}`;
         // Store in Redis
@@ -66,19 +78,22 @@ app.post('/customers', async (req, res) => {
     }
 
 });
-
-
-//1 parameter = URL
-//2 - a function to return boxes
-//req= the request from the user/browser
-//res= the response to the browser
-//async before the arrow so i can make promises
-app.get('/boxes', async (req,res)=>{
-    let boxes = await redisClient.json.get('boxes',{path: '$'}); //get the boxes 
-    
-    //send the boxes to the browser
-    res.json(boxes[0]); // the boxes is an array of arrays, convert first element to a JSON string
-}); //return boxes to the user
-
+app.get('/customers/:customerId', async (req,res)=>{
+    try {
+        const customerId =req.params.customerId;
+        const key = `customer:${customerId}`;
+        // Retrieve customer data from Redis
+        const customer = await redisClient.json.get(key, { path: '$' });
+        if (customer) {
+            res.json(customer);
+        } else {
+            // If data not found, return 404
+            res.status(404).json({ message: 'Customer not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('An Error Occurred');
+    }
+  }); 
 
 console.log("Hello");
