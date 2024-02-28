@@ -18,7 +18,7 @@ const redisClient = Redis.createClient({
 const {addOrder,getOrder} = require("./services/orderservice.js"); //import the add order funcion from the orderItems.js file
 const {addOrderItem, getOrderItem} = require("./services/orderItems"); //import the addorderitem function from the orderItems.js file
 const fs = require("fs"); //import the file system library
-const Schema = JSON.parse(fs.readFileSyncI("./orderItemSchema.json", "utf8")); //read the orderitemschema.json fileand parse it with JSON
+const Schema = JSON.parse(fs.readFileSync("./services/orderItemSchema.json", "utf8")); //read the orderitemschema.json file and parse it with JSON
 const Ajv =require("ajv"); //import the ajv library
 const ajv = new Ajv(); //create an ajv object to validate JSON
 
