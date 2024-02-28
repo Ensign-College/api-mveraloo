@@ -111,32 +111,30 @@ app.get('/customers', async (req,res)=>{
 
 
 app.post('/orders', async (req, res) => {
-    try {
-        let order = req.body;
-        // order details
+    let order= req.body;
+    //order details
 
-        let responseStatus;
-        if (order.productQuantity && order.ShippingAddress) {
-            responseStatus = 200;
-        } else {
-            responseStatus = 400;
-        }
+    let responseStatus = 
+    order.productQuantity && order.ShippingAddress ? 200 : 400;
 
-        if (responseStatus === 200) {
-            // Add order to database or perform other operations
+    if (responseStatus === 200) {
+        try {
             await addOrder({ redisClient, order });
-            res.status(200).send('Order added successfully');
-        } else {
-            res.status(responseStatus).send(`Missing required fields: ${
-                order.productQuantity ? "" : "productQuantity"
-            }, ${
-                order.ShippingAddress ? "" : "ShippingAddress"
-            }`);
         }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
+        catch (error) {
+            console.error(error);
+            res.status(500).send('Internal Server Error ');
+        }
+    } else {
+        res.status(responseStatus);
+        res.send(
+            `Mising one of the following fiels: ${
+                order.productQuantity ? "" : "productQuantity"
+            }  ${order.ShippingAddress ? "" : "ShippingAddress"}`
+        );
     }
+    res.status(responseStatus).send();
+
 });
 
 app.get("/order/:orderId", async (req, res) => {
