@@ -112,14 +112,17 @@ app.get('/customers', async (req,res)=>{
 
 app.post('/orders', async (req, res) => {
     let order= req.body;
-    //order details
 
     let responseStatus = 
     order.productQuantity && order.ShippingAddress ? 200 : 400;
-
+    
+    
     if (responseStatus === 200) {
         try {
             await addOrder({ redisClient, order });
+            res.status(responseStatus).json(
+                order
+            )
         }
         catch (error) {
             console.error(error);
@@ -131,9 +134,9 @@ app.post('/orders', async (req, res) => {
             `Mising one of the following fiels: ${
                 order.productQuantity ? "" : "productQuantity"
             }  ${order.ShippingAddress ? "" : "ShippingAddress"}`
-        );
+            );
+        // res.status(responseStatus).send();
     }
-    res.status(responseStatus).send();
 
 });
 
@@ -163,9 +166,7 @@ app.post("/orderItems", async (req, res) => {
             orderItem: req.body,
         });
         //responding with the result
-        res
-            .status(201)
-            .json({orderItemId, message: "Order item added successfully"});
+        res.status(201).json({message: "Order item added successfully"});
     } catch (error) {
         console.error("Error adding order item:", error);
         res.status(500).json({ error:'Internal Server Error '});

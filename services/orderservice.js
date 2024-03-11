@@ -11,7 +11,8 @@ const addOrder = async ({ redisClient, order }) => {
     order.orderId = orderKey;
 
     // Create the order data in Redis
-    await redisClient.json.set(orderKey, "$", order);
+    const response = await redisClient.json.set(orderKey, "$", order);
+    return response;
   } else {
     throw new Error(`Customer ${customerKey} does not exist`);
   }
