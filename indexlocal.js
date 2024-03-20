@@ -87,27 +87,25 @@ app.post('/customers', async (req, res) => {
     }
 
 });
-app.get('/customers', async (req,res)=>{
+app.get('/customers/:customerId', async (req,res)=>{
     try {
-        const customerKeys = await redisClient.keys('customer:*');
-        const customers = await Promise.all(customerKeys.map(async (key)=>{
-            const customers = await redisClient.json.get(key, { path: '$' });
-            return customers;
-        }));
-        res.json(customers);
-
-
-        //const customerId =req.params.customerId;
-        //const key = `customer:${customerId}`;
+        const customerId =req.params.customerId;
+        const key = `customer:${customerId}`;
         // Retrieve customer data from Redis
+        const customers = await redisClient.json.get(key, { path: '$' }); 
+        if (customers) {
+            res.json(customers);
         
+        } else {
+            res.status(404).send("Customer not found");
+        } 
     } catch (error) {
         console.error(error);
         res.status(500).send('An Error Occurred');
     }
   }); 
 
-
+        
 
 
 app.post('/orders', async (req, res) => {
