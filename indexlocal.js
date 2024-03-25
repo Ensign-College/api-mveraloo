@@ -37,149 +37,166 @@ app.listen(port, ()=>{
 }); //listen for web requests from the frondend and don't stop.
 
 //http://localhost:3000/boxes
-app.post('/boxes', async (req, res) => { //async means we will await promises
-        const newBox = req.body;
-        newBox.id = parseInt(await redisClient.json.arrLen('boxes', '$')) +1; //the user shouldn't choose the ID!
-        await redisClient.json.arrAppend('boxes', '$',newBox); //saves the JSON in redis
-        res.json(newBox); //respond with the new box
-});
 
-app.post('/customer', async (req, res) => { //async means we will await promises
-    const newBox = req.body;
-    newBox.id = parseInt(await redisClient.json.arrLen('boxes', '$')) +1; //the user shouldn't choose the ID!
-    await redisClient.json.arrAppend('boxes', '$',newBox); //saves the JSON in redis
-    res.json(newBox); //respond with the new box
-});
 
-//1 parameter = URL
-//2 - a function to return boxes
-//req= the request from the user/browser
-//res= the response to the browser
-//async before the arrow so i can make promises
-app.get('/boxes', async (req,res)=>{
-    let boxes = await redisClient.json.get('boxes',{path: '$'}); //get the boxes 
-    
-    //send the boxes to the browser
-    res.json(boxes[0]); // the boxes is an array of arrays, convert first element to a JSON string
-}); //return boxes to the user
 
-//Assignments 
-// Endpoint POST requests to save customer data
-app.post('/customers', async (req, res) => {
+// Lambda handler function for POST /customers
+exports.postCustomer = async (event) => {
     try {
-        // Extract data from request body
-        const { firstName, lastName, phoneNumber } = req.body;
-        // Data id
+        const body = JSON.parse(event.body);
+        const { firstName, lastName, phoneNumber } = body;
         const customerKey = `customer:${phoneNumber}`;
-        // Store in Redis
         const user = {
             firstName,
             lastName,
             phoneNumber
-        }
-        // Store data in Redis
-        await redisClient.json.set(customerKey,'$', user);
-        res.json(user);
+        };
+        await redisClient.json.set(customerKey, '$', user);
+        return {
+            statusCode: 200,
+            body: JSON.stringify(user)
+        };
     } catch (error) {
         console.error(error);
-        res.status(500).send('An Error Occurred');
-        return;
+        return {
+            statusCode: 500,
+            body: 'An Error Occurred'
+        };
     }
+};
 
-});
-app.get('/customers/:customerId', async (req,res)=>{
+// Lambda handler function for GET /customers/{customerId}
+exports.getCustomer = async (event) => {
     try {
-        const customerId =req.params.customerId;
+        const customerId = event.pathParameters.customerId;
         const key = `customer:${customerId}`;
-        // Retrieve customer data from Redis
-        const customers = await redisClient.json.get(key, { path: '$' }); 
+        const customers = await redisClient.json.get(key, { path: '$' });
         if (customers) {
-            res.json(customers);
-        
+            return {
+                statusCode: 200,
+                body: JSON.stringify(customers)
+            };
         } else {
-            res.status(404).send("Customer not found");
-        } 
+            return {
+                statusCode: 404,
+                body: "Customer not found"
+            };
+        }
     } catch (error) {
         console.error(error);
-        res.status(500).send('An Error Occurred');
+        return {
+            statusCode: 500,
+            body: 'An Error Occurred'
+        };
     }
-  }); 
+};
 
-        
-
-
-app.post('/orders', async (req, res) => {
-    let order= req.body;
-
-    let responseStatus = 
-    order.productQuantity && order.ShippingAddress ? 200 : 400;
-    
-    
-    if (responseStatus === 200) {
-        try {
-            await addOrder({ redisClient, order });
-            res.status(responseStatus).json(
-                order
-            )
-        }
-        catch (error) {
-            console.error(error);
-            res.status(500).send('Internal Server Error ');
-        }
-    } else {
-        res.status(responseStatus);
-        res.send(
-            `Mising one of the following fiels: ${
-                order.productQuantity ? "" : "productQuantity"
-            }  ${order.ShippingAddress ? "" : "ShippingAddress"}`
-            );
-        // res.status(responseStatus).send();
-    }
-
-});
-
-app.get("/order/:orderId", async (req, res) => {
-    //get the order from the database
-    const orderId = req.params.orderId;
-    let order = await getOrder({ redisClient, orderId });
-    if (order === null) {
-        res.status(404).send('Order not found ');
-    } else {
-        res.json(order);
-    }
-})
-
-app.post("/orderItems", async (req, res) => {
+// Lambda handler function for POST /orders
+exports.postOrder = async (event) => {
     try {
-        console.log("Schema", Schema);
+        const order = JSON.parse(event.body);
+        const responseStatus = order.productQuantity && order.ShippingAddress ? 200 : 400;
+
+        if (responseStatus === 200) {
+            await addOrder({ redisClient, order });
+            return {
+                statusCode: responseStatus,
+                body: JSON.stringify(order)
+            };
+        } else {
+            return {
+                statusCode: responseStatus,
+                body: `Missing one of the following fields: ${order.productQuantity ? "" : "productQuantity"} ${order.ShippingAddress ? "" : "ShippingAddress"}`
+            };
+        }
+    } catch (error) {
+        console.error(error);
+        return {
+            statusCode: 500,
+            body: 'Internal Server Error'
+        };
+    }
+};
+
+// Lambda handler function for GET /order/{orderId}
+exports.getOrder = async (event) => {
+    try {
+        const orderId = event.pathParameters.orderId;
+        const order = await getOrder({ redisClient, orderId });
+        if (order === null) {
+            return {
+                statusCode: 404,
+                body: 'Order not found'
+            };
+        } else {
+            return {
+                statusCode: 200,
+                body: JSON.stringify(order)
+            };
+        }
+    } catch (error) {
+        console.error(error);
+        return {
+            statusCode: 500,
+            body: 'Internal Server Error'
+        };
+    }
+};
+
+// Lambda handler function for POST /orderItems
+exports.postOrderItem = async (event) => {
+    try {
         const validate = ajv.compile(Schema);
-        const valid = validate(req.body);
+        const orderItem = JSON.parse(event.body);
+        const valid = validate(orderItem);
+
         if (!valid) {
-            return res.status(400).json({ error:'Invalid request bodty '});
-        } 
-        console.log("Request Body:", req.body);
-        //calling addOrderItem function and storing the result
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Invalid request body' })
+            };
+        }
+
         const orderItemId = await addOrderItem({
             redisClient,
-            orderItem: req.body,
+            orderItem
         });
-        //responding with the result
-        res.status(201).json({message: "Order item added successfully"});
-    } catch (error) {
-        console.error("Error adding order item:", error);
-        res.status(500).json({ error:'Internal Server Error '});
-    }
-});
 
-app.get("/orderItems/:orderItemId", async (req, res) => {
-    try {
-        //get the order from the database
-        const orderItemId = req.params.orderItemId;
-        const orderItem = await getOrderItem({ redisClient, orderItemId});
-        res.json(orderItem);
+        return {
+            statusCode: 201,
+            body: JSON.stringify({ message: "Order item added successfully" })
+        };
     } catch (error) {
-        console.error("Error adding order item:", error);
-        res.status(500).json({ error:'Internal Server Error '});
+        console.error(error);
+        return {
+            statusCode: 500,
+            body: 'Internal Server Error'
+        };
     }
-})
-console.log("Hello");
+};
+
+// Lambda handler function for GET /orderItems/{orderItemId}
+exports.getOrderItem = async (event) => {
+    try {
+        const orderItemId = event.pathParameters.orderItemId;
+        const orderItem = await getOrderItem({ redisClient, orderItemId });
+
+        if (!orderItem) {
+            return {
+                statusCode: 404,
+                body: 'Order item not found'
+            };
+        } else {
+            return {
+                statusCode: 200,
+                body: JSON.stringify(orderItem)
+            };
+        }
+    } catch (error) {
+        console.error(error);
+        return {
+            statusCode: 500,
+            body: 'Internal Server Error'
+        };
+    }
+};

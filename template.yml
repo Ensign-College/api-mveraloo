@@ -2,41 +2,42 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 
 Resources:
-#  MyLambdaFunction:
-#    Type: 'AWS::Serverless::Function'
-#    Properties:
-#      Handler: index.handler
-#      Runtime: nodejs14.x
-#      CodeUri: ./lambda
-#      MemorySize: 128
-#      Timeout: 30
-#      Environment:
-#        Variables:
-#          REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
-#      Events:
-#        MyApi:
-#          Type: Api
-#          Properties:
-#            Path: /myendpoint
-#            Method: get
+ MyLambdaFunction:
+   Type: 'AWS::Serverless::Function'
+   Properties:
+     Handler: index.handler
+     Runtime: nodejs14.x
+     CodeUri: .
+     MemorySize: 128
+     Timeout: 30
+     Environment:
+       Variables:
+         REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
+     Events:
+       MyApi:
+         Type: Api
+         Properties:
+           Path: /myendpoint
+           Method: get
 
-  MyVPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: 10.0.0.0/16
 
-  MySubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref MyVPC
-      CidrBlock: 10.0.0.0/24
+  # MyVPC:
+  #   Type: AWS::EC2::VPC
+  #   Properties:
+  #     CidrBlock: 10.0.0.0/16
+
+  # MySubnet:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref MyVPC
+  #     CidrBlock: 10.0.0.0/24
 
   MyElasticacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
     Properties:
       Description: Subnet group for ElastiCache
       SubnetIds:
-        - !Ref MySubnet
+        - subnet-02c217f126c0ce1d5
 
   MyElasticacheRedis:
     Type: 'AWS::ElastiCache::CacheCluster'
@@ -53,11 +54,66 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for Lambda function
-      VpcId: !Ref MyVPC
+      VpcId: vpc-066e6a637e37f2752
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 6379
           ToPort: 6379
           CidrIp: 0.0.0.0/0
 
+
+
+  PostCustomerLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.postCustomer
+      Runtime: nodejs14.x
+      CodeUri: ./lambda
+      MemorySize: 128
+      Timeout: 30
+
+  GetCustomerLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.getCustomer
+      Runtime: nodejs14.x
+      CodeUri: ./lambda
+      MemorySize: 128
+      Timeout: 30
+
+  PostOrderLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.postOrder
+      Runtime: nodejs14.x
+      CodeUri: ./lambda
+      MemorySize: 128
+      Timeout: 30
+
+  GetOrderLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.getOrder
+      Runtime: nodejs14.x
+      CodeUri: ./lambda
+      MemorySize: 128
+      Timeout: 30
+
+  PostOrderItemLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.postOrderItem
+      Runtime: nodejs14.x
+      CodeUri: ./lambda
+      MemorySize: 128
+      Timeout: 30
+
+  GetOrderItemLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.getOrderItem
+      Runtime: nodejs14.x
+      CodeUri: ./lambda
+      MemorySize: 128
+      Timeout: 30
 
