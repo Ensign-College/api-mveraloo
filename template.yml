@@ -2,24 +2,23 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 
 Resources:
- MyLambdaFunction:
-   Type: 'AWS::Serverless::Function'
-   Properties:
-     Handler: index.handler
-     Runtime: nodejs14.x
-     CodeUri: .
-     MemorySize: 128
-     Timeout: 30
-     Environment:
-       Variables:
-         REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
-     Events:
-       MyApi:
-         Type: Api
-         Properties:
-           Path: /myendpoint
-           Method: get
-
+#  MyLambdaFunction:
+#    Type: 'AWS::Serverless::Function'
+#    Properties:
+#      Handler: index.handler
+#      Runtime: nodejs20.x
+#      CodeUri: .
+#      MemorySize: 128
+#      Timeout: 30
+#      Environment:
+#        Variables:
+#          REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
+#      Events:
+#        MyApi:
+#          Type: Api
+#          Properties:
+#            Path: /myendpoint
+#            Method: get
 
   # MyVPC:
   #   Type: AWS::EC2::VPC
@@ -67,53 +66,95 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.postCustomer
-      Runtime: nodejs14.x
-      CodeUri: ./lambda
-      MemorySize: 128
-      Timeout: 30
+      Runtime: nodejs20.x
+      CodeUri: .
+      Environment:
+        Variables:
+          REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
+      Events:
+        PostCustomerApi:
+          Type: Api
+          Properties:
+            Path: /customers
+            Method: post
 
   GetCustomerLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.getCustomer
-      Runtime: nodejs14.x
-      CodeUri: ./lambda
-      MemorySize: 128
-      Timeout: 30
+      Runtime: nodejs20.x
+      CodeUri: .
+      Environment:
+        Variables:
+          REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
+      Events:
+        GetCustomerByIdApi:
+          Type: Api
+          Properties:
+            Path: /customers/{customerId}
+            Method: get
 
   PostOrderLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.postOrder
-      Runtime: nodejs14.x
-      CodeUri: ./lambda
-      MemorySize: 128
-      Timeout: 30
+      Runtime: nodejs20.x
+      CodeUri: .
+      Environment:
+        Variables:
+          REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
+      Events:
+        PostOrderApi:
+          Type: Api
+          Properties:
+            Path: /orders
+            Method: post
 
   GetOrderLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.getOrder
-      Runtime: nodejs14.x
-      CodeUri: ./lambda
-      MemorySize: 128
-      Timeout: 30
+      Runtime: nodejs20.x
+      CodeUri: .
+      Environment:
+        Variables:
+          REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
+      Events:
+        GetOrderByIdApi:
+          Type: Api
+          Properties:
+            Path: /order/{orderId}
+            Method: get
 
   PostOrderItemLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.postOrderItem
-      Runtime: nodejs14.x
-      CodeUri: ./lambda
-      MemorySize: 128
-      Timeout: 30
+      Runtime: nodejs20.x
+      CodeUri: .
+      Environment:
+        Variables:
+          REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
+      Events:
+        PostOrderItemsApi:
+          Type: Api
+          Properties:
+            Path: /orderItems
+            Method: post
 
   GetOrderItemLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.getOrderItem
-      Runtime: nodejs14.x
-      CodeUri: ./lambda
-      MemorySize: 128
-      Timeout: 30
+      Runtime: nodejs20.x
+      CodeUri: .
+      Environment:
+        Variables:
+          REDIS_HOST: !GetAtt MyElasticacheRedis.RedisEndpointAddress
+      Events:
+        GetOrderItemByIdApi:
+          Type: Api
+          Properties:
+            Path: /orderItems/{orderItemId}
+            Method: get
 
