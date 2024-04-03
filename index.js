@@ -11,8 +11,9 @@ const options = {
 const Redis = require('redis');//import the redis library
 const bodyParser = require('body-parser'); //import the body parser
 //import express from 'express'
+
 const redisClient = Redis.createClient({
-    url:`redis://localhost:6379`
+    url:`redis://${process.env.REDIS_HOST}:6379`
 });
 //New
 const {addOrder,getOrder} = require("./services/orderservice.js"); //import the add order funcion from the orderItems.js file
